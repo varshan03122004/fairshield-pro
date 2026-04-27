@@ -434,10 +434,8 @@
         };
 
         // ── API helpers ───────────────────────────────────────────────────────
-        // UPDATE THIS TO YOUR RENDER URL ONCE DEPLOYED (e.g., 'https://fairshield-backend.onrender.com')
-        const API = 'https://fairshield-backend.onrender.com';   
-
-        async function apiPost(path, body) {
+        // TEMPORARY LOCALTUNNEL URL FOR IMMEDIATE PROTOTYPE SUBMISSION
+        const API = 'https://green-humans-doubt.loca.lt';          async function apiPost(path, body) {
             const res = await fetch(API + path, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
