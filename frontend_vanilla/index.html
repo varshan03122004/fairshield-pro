@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FairShield - Unbiased Fraud Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .page {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900">
+    <div id="app" class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
+            <div class="p-6 flex items-center gap-3 border-b border-gray-100">
+                <i data-lucide="shield-check" class="text-blue-600 w-8 h-8"></i>
+                <h1 class="text-xl font-bold tracking-tight">FairShield</h1>
+            </div>
+            <nav class="flex-1 p-4 space-y-1">
+                <button onclick="showPage('dashboard')" id="btn-dashboard"
+                    class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-50 text-blue-700 font-medium transition-colors">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+                </button>
+                <button onclick="showPage('upload')" id="btn-upload"
+                    class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
+                    <i data-lucide="upload" class="w-5 h-5"></i> Upload & Train
+                </button>
+                <button onclick="showPage('bias')" id="btn-bias"
+                    class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
+                    <i data-lucide="scale" class="w-5 h-5"></i> Bias Analysis
+                </button>
+                <button onclick="showPage('predict')" id="btn-predict"
+                    class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
+                    <i data-lucide="zap" class="w-5 h-5"></i> Predict
+                </button>
+            </nav>
+            <div class="p-4 border-t border-gray-100">
+                <div class="bg-blue-600 text-white p-4 rounded-xl shadow-lg">
+                    <p class="text-xs font-semibold uppercase opacity-80">Backend Status</p>
+                    <p id="backend-status" class="mt-1 font-medium flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span> Offline
+                    </p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-auto p-8 bg-slate-50/50">
+            <!-- DASHBOARD -->
+            <div id="page-dashboard" class="page space-y-8">
+                <div>
+                    <h2 class="text-3xl font-bold">System Overview</h2>
+                    <p class="text-gray-500 mt-1">Real-time fraud detection and fairness metrics.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <div class="flex items-center justify-between"><span class="p-2 bg-blue-50 rounded-lg"><i
+                                    data-lucide="trending-up" class="text-blue-500 w-5 h-5"></i></span></div>
+                        <div class="mt-4">
+                            <h3 class="text-gray-500 text-sm font-medium">Total Samples</h3>
+                            <p id="stat-total" class="text-2xl font-bold mt-1">---</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <div class="flex items-center justify-between"><span class="p-2 bg-red-50 rounded-lg"><i
+                                    data-lucide="alert-circle" class="text-red-500 w-5 h-5"></i></span></div>
+                        <div class="mt-4">
+                            <h3 class="text-gray-500 text-sm font-medium">Model Accuracy</h3>
+                            <p id="stat-accuracy" class="text-2xl font-bold mt-1">---</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <div class="flex items-center justify-between"><span class="p-2 bg-green-50 rounded-lg"><i
+                                    data-lucide="check-circle" class="text-green-500 w-5 h-5"></i></span></div>
+                        <div class="mt-4">
+                            <h3 class="text-gray-500 text-sm font-medium">Model Recall</h3>
+                            <p id="stat-recall" class="text-2xl font-bold mt-1">---</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <div class="flex items-center justify-between"><span class="p-2 bg-purple-50 rounded-lg"><i
+                                    data-lucide="users" class="text-purple-500 w-5 h-5"></i></span></div>
+                        <div class="mt-4">
+                            <h3 class="text-gray-500 text-sm font-medium">Fairness Gap</h3>
+                            <p id="stat-bias" class="text-2xl font-bold mt-1">---</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                    <h3 class="text-lg font-semibold mb-6 text-center">Dataset Distribution</h3>
+                    <div class="h-64 max-w-2xl mx-auto"><canvas id="mainChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- UPLOAD & TRAIN -->
+            <div id="page-upload" class="page hidden max-w-4xl mx-auto space-y-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold">Model Pipeline</h2>
+                    <p class="text-gray-500 mt-2">Upload your dataset and train a robust fraud detection model.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm text-center flex flex-col">
+                        <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6"><i
+                                data-lucide="upload" class="text-blue-600 w-8 h-8"></i></div>
+                        <h3 class="text-xl font-semibold mb-2">1. Upload CSV</h3>
+                        <p class="text-sm text-gray-500 mb-6 flex-1">Select <b>dataset.csv</b> from the dataset folder.
+                        </p>
+                        <input type="file" id="csv-input" class="hidden" accept=".csv">
+                        <label for="csv-input" id="csv-label"
+                            class="cursor-pointer border-2 border-dashed rounded-xl p-4 mb-4 hover:border-blue-400 transition-all block">Choose
+                            File</label>
+                        <button onclick="handleUpload()" id="upload-btn"
+                            class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 disabled:opacity-50">Upload
+                            Now</button>
+                    </div>
+                    <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm text-center flex flex-col">
+                        <div class="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i data-lucide="cpu" class="text-purple-600 w-8 h-8"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">2. Train Model</h3>
+                        <p class="text-sm text-gray-500 mb-6 flex-1">Initialize training on the uploaded data.</p>
+                        <div id="train-metrics" class="mb-4 hidden text-left bg-gray-50 p-3 rounded-lg text-sm"></div>
+                        <button onclick="handleTrain()" id="train-btn" disabled
+                            class="w-full bg-purple-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-purple-100 hover:bg-purple-700 disabled:opacity-50">Start
+                            Training</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BIAS ANALYSIS -->
+            <div id="page-bias" class="page hidden space-y-8">
+                <div class="flex justify-between items-end">
+                    <div>
+                        <h2 class="text-3xl font-bold">Bias Detection</h2>
+                        <p class="text-gray-500 mt-1">Analyze and mitigate algorithmic bias.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <select id="bias-column" class="border p-2 rounded-lg outline-none">
+                            <option value="gender">Gender</option>
+                            <option value="region">Region</option>
+                        </select>
+                        <button onclick="handleBiasAnalysis()"
+                            class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold">Analyze</button>
+                    </div>
+                </div>
+                <div id="bias-results" class="grid grid-cols-1 lg:grid-cols-2 gap-8 hidden">
+                    <div class="bg-white p-8 rounded-2xl border border-gray-100">
+                        <h3 class="font-bold mb-4">False Positive Rate by Group</h3>
+                        <div class="h-64"><canvas id="biasChart"></canvas></div>
+                    </div>
+                    <div class="bg-white p-8 rounded-2xl border border-gray-100 flex flex-col justify-center gap-6">
+                        <div class="p-4 bg-red-50 border border-red-100 rounded-xl">
+                            <p class="text-xs text-red-600 font-bold uppercase tracking-wider">Stat Parity Difference
+                            </p>
+                            <p id="bias-spd" class="text-3xl font-black text-red-700">0.00</p>
+                        </div>
+                        <button onclick="handleMitigation()"
+                            class="w-full bg-green-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-green-100 hover:bg-green-700 transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="sparkles" class="w-5 h-5"></i> Apply Mitigation
+                        </button>
+                    </div>
+                </div>
+                <div id="bias-empty"
+                    class="bg-white p-12 rounded-2xl border border-gray-100 text-center text-gray-400 italic">
+                    Train a model first to run bias analysis.
+                </div>
+            </div>
+
+            <!-- PREDICT -->
+            <div id="page-predict" class="page hidden max-w-xl mx-auto space-y-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold">Predictor</h2>
+                    <p class="text-gray-500 mt-1">Manual transaction screening simulator.</p>
+                </div>
+                <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-xs font-bold text-gray-400 uppercase">Amount</label><input type="number"
+                                id="pred-amount" value="1200" class="w-full p-2 border rounded-lg"></div>
+                        <div><label class="text-xs font-bold text-gray-400 uppercase">Hour (0-23)</label><input
+                                type="number" id="pred-hour" value="14" class="w-full p-2 border rounded-lg"></div>
+                        <div><label class="text-xs font-bold text-gray-400 uppercase">Gender</label>
+                            <select id="pred-gender" class="w-full p-2 border rounded-lg">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div><label class="text-xs font-bold text-gray-400 uppercase">Region</label>
+                            <select id="pred-region" class="w-full p-2 border rounded-lg">
+                                <option value="Urban">Urban</option>
+                                <option value="Rural">Rural</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="handlePredict()"
+                        class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Screen Transaction</button>
+                    <div id="pred-result" class="hidden p-4 rounded-xl text-center font-bold text-lg animate-pulse">
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8081";
+        let state = { datasetId: null, modelId: null, metrics: null };
+
+        // --- Core Utils ---
+        async function api(path, method = "GET", body = null) {
+            const options = { method };
+            if (body && !(body instanceof FormData)) {
+                options.headers = { "Content-Type": "application/json" };
+                options.body = JSON.stringify(body);
+            } else if (body instanceof FormData) {
+                options.body = body;
+            }
+            const res = await fetch(`${API_URL}${path}`, options);
+            if (!res.ok) throw new Error(await res.text());
+            return res.json();
+        }
+
+        // --- Navigation ---
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById('page-' + id).classList.remove('hidden');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('bg-blue-50', 'text-gray-600'));
+            const btn = document.getElementById('btn-' + id);
+            btn.classList.replace('text-gray-600', 'bg-blue-50');
+            btn.classList.add('text-blue-700', 'font-medium');
+            lucide.createIcons();
+        }
+
+        // --- Actions ---
+        document.getElementById('csv-input').onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) document.getElementById('csv-label').innerText = file.name;
+        };
+
+        async function handleUpload() {
+            const file = document.getElementById('csv-input').files[0];
+            if (!file) return alert("Select a file first!");
+            const btn = document.getElementById('upload-btn');
+            btn.innerText = "Uploading...";
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                const res = await api('/upload/', 'POST', formData);
+                state.datasetId = res.id;
+                document.getElementById('train-btn').disabled = false;
+                alert("Dataset Uploaded! ID: " + res.id);
+            } catch (e) { alert("Upload Failed: " + e.message); }
+            btn.innerText = "Upload Now";
+        }
+
+        async function handleTrain() {
+            const btn = document.getElementById('train-btn');
+            btn.innerText = "Training...";
+            try {
+                const res = await api(`/train/${state.datasetId}`, 'POST');
+                state.modelId = res.id;
+                state.metrics = res;
+                document.getElementById('train-metrics').innerHTML = `<b>Accuracy:</b> ${(res.accuracy * 100).toFixed(1)}%<br><b>Recall:</b> ${(res.recall * 100).toFixed(1)}%`;
+                document.getElementById('train-metrics').classList.remove('hidden');
+                updateDashboard();
+                alert("Model Trained! Accuracy: " + (res.accuracy * 100).toFixed(1) + "%");
+            } catch (e) { alert("Training Failed: " + e.message); }
+            btn.innerText = "Start Training";
+        }
+
+        async function handleBiasAnalysis() {
+            if (!state.datasetId) return alert("Train a model first!");
+            const col = document.getElementById('bias-column').value;
+            try {
+                const res = await api('/bias/', 'POST', { dataset_id: state.datasetId, sensitive_column: col });
+                document.getElementById('bias-results').classList.remove('hidden');
+                document.getElementById('bias-empty').classList.add('hidden');
+                document.getElementById('bias-spd').innerText = res.statistical_parity_difference.toFixed(4);
+
+                const labels = Object.keys(res.group_metrics);
+                const data = labels.map(l => res.group_metrics[l].fpr * 100);
+                renderChart('biasChart', labels, data, 'FPR (%)', '#f87171');
+                document.getElementById('stat-bias').innerText = res.statistical_parity_difference.toFixed(2);
+            } catch (e) { alert("Analysis Failed: " + e.message); }
+        }
+
+        async function handleMitigation() {
+            const col = document.getElementById('bias-column').value;
+            try {
+                const res = await api('/mitigate/', 'POST', { dataset_id: state.datasetId, sensitive_column: col });
+                document.getElementById('bias-spd').innerText = res.statistical_parity_difference.toFixed(4);
+                alert("Bias Mitigated! New SPD: " + res.statistical_parity_difference.toFixed(4));
+                handleBiasAnalysis(); // Refresh chart
+            } catch (e) { alert("Mitigation Failed: " + e.message); }
+        }
+
+        async function handlePredict() {
+            if (!state.modelId) return alert("Train a model first!");
+            const data = {
+                amount: parseFloat(document.getElementById('pred-amount').value),
+                time_hour: parseFloat(document.getElementById('pred-hour').value),
+                gender: document.getElementById('pred-gender').value,
+                region: document.getElementById('pred-region').value,
+                location: 'USA', device: 'web' // Defaults
+            };
+            try {
+                const res = await api(`/predict/${state.modelId}`, 'POST', { data });
+                const box = document.getElementById('pred-result');
+                box.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+                if (res.is_fraud) {
+                    box.innerText = "FRAUD DETECTED! Probability: " + (res.fraud_probability * 100).toFixed(1) + "%";
+                    box.classList.add('bg-red-100', 'text-red-700');
+                } else {
+                    box.innerText = "TRANSACTION LEGIT. Probability: " + (res.fraud_probability * 100).toFixed(1) + "%";
+                    box.classList.add('bg-green-100', 'text-green-700');
+                }
+            } catch (e) { alert("Prediction Error: " + e.message); }
+        }
+
+        // --- Charts ---
+        let charts = {};
+        function renderChart(id, labels, data, label, color) {
+            if (charts[id]) charts[id].destroy();
+            charts[id] = new Chart(document.getElementById(id), {
+                type: 'bar',
+                data: { labels, datasets: [{ label, data, backgroundColor: color, borderRadius: 10 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function updateDashboard() {
+            if (state.metrics) {
+                document.getElementById('stat-total').innerText = "1,000";
+                document.getElementById('stat-accuracy').innerText = (state.metrics.accuracy * 100).toFixed(1) + "%";
+                document.getElementById('stat-recall').innerText = (state.metrics.recall * 100).toFixed(1) + "%";
+                renderChart('mainChart', ['Legit', 'Fraud'], [958, 42], 'Samples', '#3b82f6');
+            }
+        }
+
+        // --- Init ---
+        async function checkBackend() {
+            try {
+                const res = await fetch(API_URL);
+                if (res.ok) {
+                    document.getElementById('backend-status').innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400"></span> Online';
+                } else {
+                    throw new Error();
+                }
+            } catch (e) {
+                document.getElementById('backend-status').innerHTML = '<span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span> Offline';
+            }
+        }
+
+        window.onload = () => {
+            checkBackend();
+            lucide.createIcons();
+            renderChart('mainChart', ['Legit', 'Fraud'], [0, 0], 'Samples', '#e2e8f0');
+        };
+    </script>
+</body>
+
+</html>

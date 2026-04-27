@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "public": true,
+  "name": "fairshield-frontend",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/frontend_vanilla/fairshield_pro.html" }
+  ]
+}
