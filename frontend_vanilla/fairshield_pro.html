@@ -435,10 +435,15 @@
 
         // ── API helpers ───────────────────────────────────────────────────────
         // TEMPORARY LOCALTUNNEL URL FOR IMMEDIATE PROTOTYPE SUBMISSION
-        const API = 'https://green-humans-doubt.loca.lt';          async function apiPost(path, body) {
+        const API = 'https://green-humans-doubt.loca.lt';
+
+        async function apiPost(path, body) {
             const res = await fetch(API + path, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Bypass-Tunnel-Reminder': 'true'
+                },
                 body: JSON.stringify(body)
             });
             if (!res.ok) {
